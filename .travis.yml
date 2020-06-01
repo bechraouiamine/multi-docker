@@ -1,0 +1,23 @@
+language: generic 
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t abechraoui/multi-docker-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run -e CI=true abechraoui/multi-docker-test npm test 
+
+after_success:
+  - docker build -t abechraoui/multi-client ./client
+  - docker build -t abechraoui/multi-server ./server
+  - docker build -t abechraoui/multi-nginx ./nginx
+  - docker build -t abechraoui/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin 
+
+  - docker push abechraoui/multi-client
+  - docker push abechraoui/multi-server
+  - docker push abechraoui/multi-nginx
+  - docker push abechraoui/multi-worker
